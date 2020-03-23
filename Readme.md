@@ -1,323 +1,470 @@
-# 微信小程序 SDK （for Golang）
+# ![title](title.png)
 
-## 目录
+## `注意` ⚠️
 
-- [拉取代码](#拉取代码)
-- [AccessToken](#AccessToken)
-- [用户登录](#用户登录)
-- [二维码](#二维码)
-  - [获取小程序码](#获取小程序码)
-  - [获取小程序二维码](#获取小程序二维码)
-- [模板消息](#模板消息)
-  - [获取小程序模板库标题列表](#获取小程序模板库标题列表)
-  - [获取帐号下已存在的模板列表](#获取帐号下已存在的模板列表)
-  - [获取模板库某个模板标题下关键词库](#获取模板库某个模板标题下关键词库)
-  - [组合模板并添加至帐号下的个人模板库](#组合模板并添加至帐号下的个人模板库)
-  - [删除帐号下的某个模板](#删除帐号下的某个模板)
-  - [发送模板消息](#发送模板消息)
-- [统一服务消息](#统一服务消息)
-- [客服消息](#客服消息)
-  - [接收客服消息](#接收客服消息)
-  - [发送客服消息](#发送客服消息)
-- [支付](#支付)
-  - [付款](#付款)
-  - [处理支付结果通知](#处理支付结果通知)
-  - [退款](#退款)
-  - [处理退款结果通知](#处理退款结果通知)
-  - [转账(企业付款)](#转账(企业付款))
-  - [查询转账](#查询转账)
-- [解密](#解密)
-  - [解密手机号码](#解密手机号码)
-  - [解密分享内容](#解密分享内容)
-  - [解密用户信息](#解密用户信息)
-- [内容检测](#内容检测)
-  - [检测图片](#检测图片)
-  - [检测文本](#检测文本)
+- [v1 版本入口](https://github.com/medivhzhan/weapp/tree/v1)
+- v2 暂时不包含支付相关内容
+- 为了保证大家及时用上新功能，已发布 v2 版本，请大家使用经过线上认证 ✅ 的接口。
+- 所有接口均已完成，其他接口将在经过线上测试后在新版本中提供给大家。
+- 大部分接口需要去线上测试。最近一直比较忙，有条件的朋友可以帮忙一起测试，我代表所有使用者谢谢你：）
 
-## 拉取代码
+## 获取代码
 
 ```sh
 
-go get -u github.com/medivhzhan/weapp
+go get -u github.com/medivhzhan/weapp/v2
 
 ```
 
-## AccessToken
+## `目录`
 
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/token.html)
+> 文档按照[小程序服务端官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/)排版，方便您一一对照查找相关内容。
+
+✅：代表已经通过线上测试
+⚠️：代表还没有或者未完成
+
+- [登录](#登录)
+  - [code2Session](#code2Session) ✅
+- [用户信息](#用户信息)
+  - [getPaidUnionId](#getPaidUnionId) ✅
+- [接口调用凭证](#接口调用凭证)
+  - [getAccessToken](#getAccessToken) ✅
+- [数据分析](#数据分析)
+  - [访问留存](#访问留存)
+    - [getDailyRetain](#getDailyRetain) ✅
+    - [getWeeklyRetain](#getWeeklyRetain) ✅
+    - [getMonthlyRetain](#getMonthlyRetain) ✅
+  - [getDailySummary](#getDailySummary) ✅
+  - [访问趋势](#访问趋势)
+    - [getDailyVisitTrend](#getDailyVisitTrend) ✅
+    - [getWeeklyVisitTrend](#getWeeklyVisitTrend) ✅
+    - [getMonthlyVisitTrend](#getMonthlyVisitTrend) ✅
+  - [getUserPortrait](#getUserPortrait) ✅
+  - [getVisitDistribution](#getVisitDistribution) ✅
+  - [getVisitPage](#getVisitPage) ✅
+- [客服消息](#客服消息)
+  - [getTempMedia](#getTempMedia) ✅
+  - [sendCustomerServiceMessage](#sendCustomerServiceMessage) ✅
+  - [setTyping](#setTyping) ✅
+  - [uploadTempMedia](#uploadTempMedia) ✅
+- [模板消息](#模板消息)(腾讯将于 2020 年 1 月 10 日下线该接口，请使用 [`订阅消息`](#订阅消息))
+- [统一服务消息](#统一服务消息)
+  - [sendUniformMessage](#sendUniformMessage) ✅
+- [动态消息](#动态消息)
+  - [createActivityId](#createActivityId)
+  - [setUpdatableMsg](#setUpdatableMsg)
+- [插件管理](#插件管理)
+  - [applyPlugin](#applyPlugin)
+  - [getPluginDevApplyList](#getPluginDevApplyList)
+  - [getPluginList](#getPluginList)
+  - [setDevPluginApplyStatus](#setDevPluginApplyStatus)
+  - [unbindPlugin](#unbindPlugin)
+- [附近的小程序](#附近的小程序)
+  - [addNearbyPoi](#addNearbyPoi)
+  - [deleteNearbyPoi](#deleteNearbyPoi)
+  - [getNearbyPoiList](#getNearbyPoiList)
+  - [setNearbyPoiShowStatus](#setNearbyPoiShowStatus)
+- [小程序码](#小程序码) ✅
+  - [createQRCode](#createQRCode) ✅
+  - [get](#get) ✅
+  - [getUnlimited](#getUnlimited) ✅
+- [内容安全](#内容安全)
+  - [imgSecCheck](#imgSecCheck) ✅
+  - [mediaCheckAsync](#mediaCheckAsync)
+  - [msgSecCheck](#msgSecCheck) ✅
+- [图像处理](#图像处理)
+  - [aiCrop](#aiCrop) ✅
+  - [scanQRCode](#scanQRCode) ✅
+  - [superResolution](#superResolution)
+- [及时配送](#及时配送) ⚠️
+  - [小程序使用](#小程序使用)
+    - [abnormalConfirm](#abnormalConfirm)
+    - [addDeliveryOrder](#addDeliveryOrder)
+    - [addDeliveryTip](#addDeliveryTip)
+    - [cancelDeliveryOrder](#cancelDeliveryOrder)
+    - [getAllImmediateDelivery](#getAllImmediateDelivery)
+    - [getBindAccount](#getBindAccount)
+    - [getDeliveryOrder](#getDeliveryOrder)
+    - [mockUpdateDeliveryOrder](#mockUpdateDeliveryOrder)
+    - [onDeliveryOrderStatus](#onDeliveryOrderStatus)
+    - [preAddDeliveryOrder](#preAddDeliveryOrder)
+    - [preCancelDeliveryOrder](#preCancelDeliveryOrder)
+    - [reDeliveryOrder](#reDeliveryOrder)
+  - [服务提供方使用](#服务提供方使用)
+    - [updateDeliveryOrder](#updateDeliveryOrder)
+    - [onAgentPosQuery](#onAgentPosQuery)
+    - [onAuthInfoGet](#onAuthInfoGet)
+    - [onCancelAuth](#onCancelAuth)
+    - [onDeliveryOrderAdd](#onDeliveryOrderAdd)
+    - [onDeliveryOrderAddTips](#onDeliveryOrderAddTips)
+    - [onDeliveryOrderCancel](#onDeliveryOrderCancel)
+    - [onDeliveryOrderConfirmReturn](#onDeliveryOrderConfirmReturn)
+    - [onDeliveryOrderPreAdd](#onDeliveryOrderPreAdd)
+    - [onDeliveryOrderPreCancel](#onDeliveryOrderPreCancel)
+    - [onDeliveryOrderQuery](#onDeliveryOrderQuery)
+    - [onDeliveryOrderReAdd](#onDeliveryOrderReAdd)
+    - [onPreAuthCodeGet](#onPreAuthCodeGet)
+    - [onRiderScoreSet](#onRiderScoreSet)
+- [物流助手](#物流助手) ⚠️
+  - [小程序使用](#小程序使用)
+    - [addExpressOrder](#addExpressOrder)
+    - [cancelExpressOrder](#cancelExpressOrder)
+    - [getAllDelivery](#getAllDelivery)
+    - [getExpressOrder](#getExpressOrder)
+    - [getExpressPath](#getExpressPath)
+    - [getExpressPrinter](#getExpressPrinter)
+    - [getExpressQuota](#getExpressQuota)
+    - [onExpressPathUpdate](#onExpressPathUpdate)
+    - [testUpdateExpressOrder](#testUpdateExpressOrder)
+    - [updateExpressPrinter](#updateExpressPrinter)
+  - [服务提供方使用](#服务提供方使用)
+    - [getExpressContact](#getExpressContact)
+    - [onAddExpressOrder](#onAddExpressOrder)
+    - [onCancelExpressOrder](#onCancelExpressOrder)
+    - [onCheckExpressBusiness](#onCheckExpressBusiness)
+    - [onGetExpressQuota](#onGetExpressQuota)
+    - [previewExpressTemplate](#previewExpressTemplate)
+    - [updateExpressBusiness](#updateExpressBusiness)
+    - [updateExpressPath](#updateExpressPath)
+- [OCR](#OCR)
+  - [bankcard](#bankcard) ✅
+  - [businessLicense](#businessLicense) ✅
+  - [driverLicense](#driverLicense) ✅
+  - [idcard](#idcard) ✅
+  - [printedText](#printedText) ✅
+  - [vehicleLicense](#vehicleLicense) ✅
+- [运维中心](#运维中心) ⚠️
+  - [realTimeLogSearch](#realTimeLogSearch)
+- [生物认证](#生物认证)
+  - [verifySignature](#verifySignature)
+- [订阅消息](#订阅消息)
+  - [sendSubscribeMessage](#sendSubscribeMessage) ✅
+- [解密](#解密)
+  - [解密手机号码](#解密手机号码) ✅
+  - [解密分享内容](#解密分享内容)
+  - [解密用户信息](#解密用户信息) ✅
+
+---
+
+## 登录
+
+### code2Session
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/login/auth.code2Session.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/token"
+import "github.com/medivhzhan/weapp/v2"
 
-// 获取次数有限制 获取后请缓存
-tok, exp, err := token.AccessToken(appID, secret string)
-
-```
-
-## 用户登录
-
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/api-login.html)
-
-```go
-
-import "github.com/medivhzhan/weapp"
-
-// @appID 小程序 appID
-// @secret 小程序的 app secret
-// @code 小程序登录时获取的 code
-res, err := weapp.Login(appID, secret, code)
+res, err := weapp.Login("appid", "secret", "code")
 if err != nil {
-    // handle error
+    // 处理一般错误信息
+    return
 }
 
-// res.OpenID
-// res.SessionKey
-// res.UnionID
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
 fmt.Printf("返回结果: %#v", res)
 
+```
+
+---
+
+## 用户信息
+
+### getPaidUnionId
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/user-info/auth.getPaidUnionId.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetPaidUnionID("access-token", "open-id", "transaction-id")
+// 或者
+res, err := weapp.GetPaidUnionIDWithMCH("access-token", "open-id", "out-trade-number", "mch-id")
+
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
 
 ```
 
 ---
 
-## 二维码
+## 接口调用凭证
 
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/qrcode.html)
+### getAccessToken
 
-### 获取小程序码
+> 调用次数有限制 请注意缓存
 
-需要二维码数量较少的业务场景
-
-```go
-
-import "github.com/medivhzhan/weapp/code"
-
-coder := code.QRCoder {
-    Path: "pages/index?query=1", // 识别二维码后进入小程序的页面链接
-    Width: 430, // 图片宽度
-    IsHyaline: true, // 是否需要透明底色
-    AutoColor: true, // 自动配置线条颜色, 如果颜色依然是黑色, 则说明不建议配置主色调
-    LineColor: code.Color{ //  AutoColor 为 false 时生效, 使用 rgb 设置颜色 十进制表示
-        R: "50",
-        G: "50",
-        B: "50",
-    },
-}
-
-// token: 微信 access_token
-res, err := coder.AppCode(token string)
-if err != nil {
-    // handle error
-}
-defer res.Body.Close()
-```
-
-需要二维码数量极多的业务场景
-
-```go
-coder := code.QRCoder {
-    Scene: "...", // 参数数据
-    Page: "pages/index", // 识别二维码后进入小程序的页面链接
-    Width: 430, // 图片宽度
-    IsHyaline: true, // 是否需要透明底色
-    AutoColor: true, // 自动配置线条颜色, 如果颜色依然是黑色, 则说明不建议配置主色调
-    LineColor: code.Color{ //  AutoColor 为 false 时生效, 使用 rgb 设置颜色 十进制表示
-        R: "50",
-        G: "50",
-        B: "50",
-    },
-}
-
-// token: 微信 access_token
-res, err := coder.UnlimitedAppCode(token string)
-if err != nil {
-    // handle error
-}
-defer res.Body.Close()
-
-```
-
-### 获取小程序二维码
-
-适用于需要的码数量较少的业务场景
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/access-token/auth.getAccessToken.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/code"
+import "github.com/medivhzhan/weapp/v2"
 
-coder := code.QRCoder {
-    Path: "pages/index?query=1", // 识别二维码后进入小程序的页面链接
-    Width: 430, // 图片宽度
-}
-
-// 获取小程序二维码
-// token: 微信access_token
-res, err := coder.QRCode(token string)
+res, err := weapp.GetAccessToken("appid", "secret")
 if err != nil {
-    // handle error
+    // 处理一般错误信息
+    return
 }
-defer res.Body.Close()
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
 
 ```
 
 ---
 
-## 模板消息
+## 数据分析
 
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/notice.html)
+### 访问留存
 
-### 获取小程序模板库标题列表
+#### getDailyRetain
 
-```go
-
-import "github.com/medivhzhan/weapp/message/template"
-
-// 获取小程序模板库标题列表
-// offset: 开始获取位置 从0开始
-// count: 获取记录条数 最大为20
-// token: 微信 access_token
-list, total, err := template.List(offset uint, count uint, token string)
-
-```
-
-### 获取帐号下已存在的模板列表
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/visit-retain/analysis.getDailyRetain.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/message/template"
+import "github.com/medivhzhan/weapp/v2"
 
-// 获取帐号下已存在的模板列表
-// offset: 开始获取位置 从0开始
-// count: 获取记录条数 最大为20
-// token: 微信 access_token
-list, total, err := template.Selves(offset uint, count uint, token string)
-```
-
-### 获取模板库某个模板标题下关键词库
-
-```go
-
-import "github.com/medivhzhan/weapp/message/template"
-
-// 获取模板库某个模板标题下关键词库
-// id: 模板ID
-// token: 微信 access_token
-keywords, err := template.Get(id, token string)
-
-```
-
-### 组合模板并添加至帐号下的个人模板库
-
-```go
-
-import "github.com/medivhzhan/weapp/message/template"
-
-// 组合模板并添加至帐号下的个人模板库
-// id: 模板ID
-// token: 微信 aceess_token
-// keywordIDList: 关键词 ID 列表
-// 返回新建模板ID和错误信息
-tid, err := template.Add(id, token string, keywordIDList []uint)
-
-```
-
-### 删除帐号下的某个模板
-
-```go
-
-import "github.com/medivhzhan/weapp/message/template"
-
-// 删除帐号下的某个模板
-// id: 模板ID
-// token: 微信 aceess_token
-err := template.Delete(id, token string)
-
-```
-
-### 发送模板消息
-
-```go
-
-import "github.com/medivhzhan/weapp/message/template"
-
-msg := template.Message{
-    "keyword1": "content ...",
-    "keyword2": "content ...",
+res, err := weapp.GetDailyRetain("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
 }
 
-// 发送模板消息
-// openid: 接收者（用户）的 openid
-// template: 所需下发的模板消息的id
-// page: 点击模板卡片后的跳转页面, 仅限本小程序内的页面。支持带参数,（示例index?foo=bar）。该字段不填则模板无跳转。
-// formID: 表单提交场景下, 为 submit 事件带上的 formId；支付场景下, 为本次支付的 prepay_id
-// data: 模板内容, 不填则下发空模板
-// emphasisKeyword: 模板需要放大的关键词, 不填则默认无放大
-err := template.Send(openid, template, page, formID string, msg template.Message, emphasisKeyword, token string)
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
 
 ```
 
----
+#### getWeeklyRetain
 
-## 统一服务消息
-
-小程序和公众号模板消息统一的服务消息下发接口(已经被官网下架 不建议使用)
-
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/notice-uniform.html)
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/visit-retain/analysis.getWeeklyRetain.html)
 
 ```go
 
-// 消息体
-msg := template.UniformMsg{
-    ToUser: "用户 openid",
-    // 小程序模板消息
-    WeappTemplateMsg: template.WeappTemplateMsg{
-        TemplateID:      schedule.ActivityWillStartTemplateID,
-        Page:            "pages/messages/main",
-        FormID:          "1537411865951",
-        EmphasisKeyword: "keyword1.DATA",
-        Data: template.Data{
-            "keyword1": template.Keyword{
-                Value: "恭喜你购买成功！",
-                Color: "#173177",
-            },
-            "keyword2": template.Keyword{
-                Value: "巧克力",
-                Color: "#173177",
-            },
-            "keyword3": template.Keyword{
-                Value: "39.8元",
-                Color: "#173177",
-            },
-        },
-    },
-    // 公众号模板消息
-    MPTemplateMsg: template.MPTemplateMsg{
-        AppID:      "wx2c5a33d31b4ee88f",
-        TemplateID: "UmuX15eBoonYkLy-7Xle1rA6xHhv4bsbie1Viidg2Cs",
-        URL:        "https://medivhzhan.me",
-        Miniprogram: template.Miniprogram{
-            AppID:    "wx7ad9cfdc85a2fdb2",
-            Pagepath: "pages/me/main",
-        },
-        Data: template.Data{
-            "first": template.Keyword{
-                Value: "恭喜你购买成功！",
-                Color: "#173177",
-            },
-            "keyword1": template.Keyword{
-                Value: "巧克力",
-                Color: "#173177",
-            },
-            "remark": template.Keyword{
-                Value: "remark content ...",
-                Color: "#173177",
-            },
-        },
-    },
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetWeeklyRetain("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
 }
 
-err := msg.Send(token)
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getMonthlyRetain
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/visit-retain/analysis.getMonthlyRetain.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetMonthlyRetain("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### getDailySummary
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/analysis.getDailySummary.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetDailySummary("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### 访问趋势
+
+#### getDailyVisitTrend
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/visit-trend/analysis.getDailyVisitTrend.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetDailyVisitTrend("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getWeeklyVisitTrend
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/visit-trend/analysis.getWeeklyVisitTrend.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetWeeklyVisitTrend("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getMonthlyVisitTrend
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/visit-trend/analysis.getMonthlyVisitTrend.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetMonthlyVisitTrend("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### getUserPortrait
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/analysis.getUserPortrait.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetUserPortrait("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### getVisitDistribution
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/analysis.getVisitDistribution.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetVisitDistribution("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### getVisitPage
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/data-analysis/analysis.getVisitPage.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetVisitPage("access-token", "begin-date", "end-date")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
 
 ```
 
@@ -325,176 +472,429 @@ err := msg.Send(token)
 
 ## 客服消息
 
-### 接收客服消息
+### getTempMedia
 
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/custommsg/receive.html)
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/customer-message/customerServiceMessage.getTempMedia.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/notify"
+import "github.com/medivhzhan/weapp/v2"
 
-// 新建服务
-srv := notify.NewServer(http.ResponseWriter, *http.Request)
+resp, res, err := weapp.GetTempMedia("access-token", "media-id")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+defer resp.Close()
 
-srv.HandleTextMessage(func(msg notify.Text)) {
-    // 处理文本消息
-})
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
 
-srv.HandleCardMessage(func(msg notify.Card)) {
-    // 处理卡片消息
-})
-
-srv.HandleImageMessage(func(msg notify.Image)) {
-    // 处理图片消息
-})
-
-srv.HandleEvent(func(msg notify.Event)) {
-    // 处理事件
-})
-
-// 执行服务
-err := srv.Serve()
+fmt.Printf("返回结果: %#v", res)
 
 ```
 
-### 发送客服消息
+### sendCustomerServiceMessage
 
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/custommsg/conversation.html)
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/customer-message/customerServiceMessage.send.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/message"
+import "github.com/medivhzhan/weapp/v2"
+
 
 // 文本消息
-msg := message.Text{
-    Content: "消息内容",
+msg := weapp.CSMsgText{
+    Content: "content",
 }
-
+// 或者
 // 图片消息
-msg := message.Image{
-    MediaID: "微信 media_id"
+msg := weapp.CSMsgImage{
+    MediaID: "media-id",
+}
+// 或者
+// 链接消息
+msg := weapp.CSMsgLink{
+    Title:       "title",
+    Description: "description",
+    URL:         "url",
+    ThumbURL:    "thumb-url",
+}
+// 或者
+// 小程序卡片消息
+msg := weapp.CSMsgMPCard{
+    Title:        "title",
+    PagePath:     "page-path",
+    ThumbMediaID: "thumb-media-id",
 }
 
-// 图文链接消息
-msg := message.Link{
-    Title: "标题"
-    Description: "描述"
-    URL: "点击跳转链接"
-    ThumbURL: "图片链接"
+res, err := msg.SendTo("open-id", "access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
 }
 
-// 卡片消息
-msg := message.Card{
-    Title: "标题"
-    PagePath: "小程序页面路径"
-    ThumbMediaID: "卡封面图片 media_id"
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
 }
 
-// 发送消息
-// openid: 用户 openid
-// token: 微信 access_token
-res, err := msg.SendTo(openid, token string)
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### setTyping
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/customer-message/customerServiceMessage.setTyping.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.SetTyping("access-token", "open-id", weapp.SetTypingCommandTyping)
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### uploadTempMedia
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/customer-message/customerServiceMessage.uploadTempMedia.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.UploadTempMedia("access-token", weapp.TempMediaTypeImage, "media-filename")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
 
 ```
 
 ---
 
-## 支付
+## 统一服务消息
 
-### 付款
+### sendUniformMessage
 
-[官方文档](https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_1)
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/uniform-message/uniformMessage.send.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/payment"
+import "github.com/medivhzhan/weapp/v2"
 
-// 新建支付订单
-form := payment.Order{
-    // 必填
-    AppID:      "APPID",
-    MchID:      "商户号",
-    Body:       "商品描述",
-    NotifyURL:  "通知地址",
-    OpenID:     "通知用户的 openid",
-    OutTradeNo: "商户订单号",
-    TotalFee:   "总金额(分)",
-
-    // 选填 ...
-    IP:        "发起支付终端IP",
-    NoCredit:  "是否允许使用信用卡",
-    StartedAt: "交易起始时间",
-    ExpiredAt: "交易结束时间",
-    Tag:       "订单优惠标记",
-    Detail:    "商品详情",
-    Attach:    "附加数据",
+sender := weapp.UniformMsgSender{
+    ToUser: "open-id",
+    UniformWeappTmpMsg: weapp.UniformWeappTmpMsg{
+        TemplateID: "template-id",
+        Page:       "page",
+        FormID:     "form-id",
+        Data: weapp.UniformMsgData{
+            "keyword": {Value: "value"},
+        },
+        EmphasisKeyword: "keyword.DATA",
+    },
+    UniformMpTmpMsg: weapp.UniformMpTmpMsg{
+        AppID:       "app-id",
+        TemplateID:  "template-id",
+        URL:         "url",
+        Miniprogram: weapp.UniformMsgMiniprogram{"miniprogram-app-id", "page-path"},
+        Data: weapp.UniformMsgData{
+            "keyword": {"value", "color"},
+        },
+    },
 }
 
-res, err := form.Unify("支付密钥")
+_, err := sender.Send("access-token")
 if err != nil {
-    // handle error
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
     return
 }
 
 fmt.Printf("返回结果: %#v", res)
 
-// 获取小程序前点调用支付接口所需参数
-params, err := payment.GetParams(res.AppID, "微信支付密钥", res.NonceStr, res.PrePayID)
-if err != nil {
-    // handle error
-    return
-}
-
 ```
 
-### 处理支付结果通知
+---
 
-[官方文档](https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_7&index=8)
+## 动态消息
+
+### createActivityId
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/updatable-message/updatableMessage.createActivityId.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/payment"
+import "github.com/medivhzhan/weapp/v2"
 
-// 必须在下单时指定的 notify_url 的路由处理器下
-err := payment.HandlePaidNotify(w http.ResponseWriter, req *http.Request,  func(ntf payment.PaidNotify) (bool, string) {
-    // 处理通知
-    fmt.Printf("%#v", ntf)
+res, err := weapp.CreateActivityId("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
 
-    // 处理成功 return true, ""
-    // or
-    // 处理失败 return false, "失败原因..."
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### setUpdatableMsg
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/updatable-message/updatableMessage.setUpdatableMsg.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+
+setter := weapp.UpdatableMsgSetter{
+    "activity-id",
+    UpdatableMsgJoining,
+    UpdatableMsgTempInfo{
+        []UpdatableMsgParameter{
+            {UpdatableMsgParamMemberCount, "parameter-value-number"},
+            {UpdatableMsgParamRoomLimit, "parameter-value-number"},
+        },
+    },
+}
+
+res, err := setter.Set("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+---
+
+## 插件管理
+
+### applyPlugin
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/plugin-management/pluginManager.applyPlugin.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.ApplyPlugin("access-token", "plugin-app-id", "reason")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### getPluginDevApplyList
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/plugin-management/pluginManager.getPluginDevApplyList.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetPluginDevApplyList("access-token", 1, 2)
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### getPluginList
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/plugin-management/pluginManager.getPluginList.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetPluginList("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### setDevPluginApplyStatus
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/plugin-management/pluginManager.setDevPluginApplyStatus.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.SetDevPluginApplyStatus("access-token", "plugin-app-id", "reason", weapp.DevAgree)
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### unbindPlugin
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/plugin-management/pluginManager.unbindPlugin.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.UnbindPlugin("access-token", "plugin-app-id")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+---
+
+## 附近的小程序
+
+### addNearbyPoi
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/nearby-poi/nearbyPoi.add.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+poi := NearbyPoi{
+    PicList: PicList{[]string{"first-picture-url", "second-picture-url", "third-picture-url"}},
+    ServiceInfos: weapp.ServiceInfos{[]weapp.ServiceInfo{
+        {1, 1, "name", "app-id", "path"},
+    }},
+    StoreName:         "store-name",
+    Hour:              "11:11-12:12",
+    Credential:        "credential",
+    Address:           "address",                         // 地址 必填
+    CompanyName:       "company-name",                    // 主体名字 必填
+    QualificationList: "qualification-list",              // 证明材料 必填 如果company_name和该小程序主体不一致，需要填qualification_list，详细规则见附近的小程序使用指南-如何证明门店的经营主体跟公众号或小程序帐号主体相关http://kf.qq.com/faq/170401MbUnim17040122m2qY.html
+    KFInfo:            weapp.KFInfo{true, "kf-head-img", "kf-name"}, // 客服信息 选填，可自定义服务头像与昵称，具体填写字段见下方示例kf_info pic_list是字符串，内容是一个json！
+    PoiID:             "poi-id",                          // 如果创建新的门店，poi_id字段为空 如果更新门店，poi_id参数则填对应门店的poi_id 选填
+}
+
+res, err := poi.Add("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+// 接收并处理异步结果
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnAddNearbyPoi(func(mix *weapp.AddNearbyPoiResult) {
+    // 处理返回结果
 })
 
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
 ```
 
-### 退款
+### deleteNearbyPoi
 
-[官方文档](https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_4)
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/nearby-poi/nearbyPoi.delete.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/payment"
+import "github.com/medivhzhan/weapp/v2"
 
-// 新建退款订单
-form := payment.Refunder{
-    // 必填
-    AppID:       "APPID",
-    MchID:       "商户号",
-    TotalFee:    "总金额(分)",
-    RefundFee:   "退款金额(分)",
-    OutRefundNo: "商户退款单号",
-    // 二选一
-    OutTradeNo: "商户订单号", // or TransactionID: "微信订单号",
-
-    // 选填 ...
-    RefundDesc: "退款原因",   // 若商户传入, 会在下发给用户的退款消息中体现退款原因
-    NotifyURL:  "结果通知地址", // 覆盖商户平台上配置的回调地址
+res, err := weapp.DeleteNearbyPoi("access-token", "poi-id")
+if err != nil {
+    // 处理一般错误信息
+    return
 }
 
-// 需要证书
-res, err := form.Refund("支付密钥",  "cert 证书路径", "key 证书路径")
-if err != nil {
-    // handle error
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
     return
 }
 
@@ -502,55 +902,249 @@ fmt.Printf("返回结果: %#v", res)
 
 ```
 
-### 处理退款结果通知
+### getNearbyPoiList
 
-[官方文档](https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_5)
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/nearby-poi/nearbyPoi.getList.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/payment"
+import "github.com/medivhzhan/weapp/v2"
 
-// 必须在商户平台上配置的回调地址或者发起退款时指定的 notify_url 的路由处理器下
-err := payment.HandleRefundedNotify(w http.ResponseWriter, req *http.Request,  "支付密钥", func(ntf payment.RefundedNotify) (bool,         // 处理通知
-    fmt.Printf("%#v", ntf)
+res, err := weapp.GetNearbyPoiList("access-token", 1, 10)
+if err != nil {
+    // 处理一般错误信息
+    return
+}
 
-    // 处理成功 return true, ""
-    // or
-    // 处理失败 return false, "失败原因..."
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### setNearbyPoiShowStatus
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/nearby-poi/nearbyPoi.setShowStatus.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.SetNearbyPoiShowStatus("access-token", "poi-id", weapp.ShowNearbyPoi)
+// 或者
+res, err := weapp.SetNearbyPoiShowStatus("access-token", "poi-id", weapp.HideNearbyPoi)
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+---
+
+## 小程序码
+
+### createQRCode
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/qr-code/wxacode.createQRCode.html)
+
+```go
+
+import (
+    "ioutil"
+    "github.com/medivhzhan/weapp/v2"
+)
+
+
+creator := weapp.QRCodeCreator{
+    Path:  "mock/path",
+    Width: 430,
+}
+
+resp, res, err := creator.Create("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+defer resp.Body.Close()
+
+content, err := ioutil.ReadAll(resp.Body)
+// 处理图片内容
+
+```
+
+### get
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/qr-code/wxacode.get.html)
+
+```go
+
+import (
+    "ioutil"
+    "github.com/medivhzhan/weapp/v2"
+)
+
+
+getter := weapp.QRCode{
+    Path:      "mock/path",
+    Width:     430,
+    AutoColor: true,
+    LineColor: weapp.Color{"r", "g", "b"},
+    IsHyaline: true,
+}
+
+resp, res, err := getter.Get("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+defer resp.Body.Close()
+
+content, err := ioutil.ReadAll(resp.Body)
+// 处理图片内容
+
+```
+
+### getUnlimited
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/qr-code/wxacode.getUnlimited.html)
+
+```go
+
+import (
+    "ioutil"
+    "github.com/medivhzhan/weapp/v2"
+)
+
+
+getter :=  weapp.UnlimitedQRCode{
+    Scene:     "scene-data",
+    Page:      "mock/page",
+    Width:     430,
+    AutoColor: true,
+    LineColor: weapp.Color{"r", "g", "b"},
+    IsHyaline: true,
+}
+
+resp, res, err := getter.Get("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+defer resp.Body.Close()
+
+content, err := ioutil.ReadAll(resp.Body)
+// 处理图片内容
+
+```
+
+---
+
+## 内容安全
+
+### imgSecCheck
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/sec-check/security.imgSecCheck.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.IMGSecCheck("access-token", "local-filename")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### mediaCheckAsync
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/sec-check/security.mediaCheckAsync.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.MediaCheckAsync("access-token", "image-url", weapp.MediaTypeImage)
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+// 接收并处理异步结果
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnMediaCheckAsync(func(mix *weapp.MediaCheckAsyncResult) {
+    // 处理返回结果
 })
 
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
 ```
 
-### 转账(企业付款到零钱)
+### msgSecCheck
 
-[官方文档](https://pay.weixin.qq.com/wiki/doc/api/tools/mch_pay.php?chapter=14_2)
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/sec-check/security.msgSecCheck.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/payment"
+import "github.com/medivhzhan/weapp/v2"
 
-// 新建退款订单
-form := payment.Transferer{
-    // 必填 ...
-    AppID:       "APPID",
-    MchID:       "商户号",
-    Amount:      "总金额(分)",
-    OutRefundNo: "商户退款单号",
-    OutTradeNo:  "商户订单号", // or TransactionID: "微信订单号",
-    ToUser:      "转账目标用户的 openid",
-    Desc:        "转账描述", // 若商户传入, 会在下发给用户的退款消息中体现退款原因
-
-    // 选填 ...
-    IP: "发起转账端 IP 地址", // 若商户传入, 会在下发给用户的退款消息中体现退款原因
-    CheckName: "校验用户姓名选项 true/false",
-    RealName: "收款用户真实姓名", // 如果 CheckName 设置为 true 则必填用户真实姓名
-    Device:   "发起转账设备信息",
+res, err := weapp.MSGSecCheck("access-token", "message-content")
+if err != nil {
+    // 处理一般错误信息
+    return
 }
 
-// 需要证书
-res, err := form.Transfer("支付密钥",  "cert 证书路径", "key 证书路径")
-if err != nil {
-    // handle error
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
     return
 }
 
@@ -558,25 +1152,1523 @@ fmt.Printf("返回结果: %#v", res)
 
 ```
 
-### 查询转账
+---
 
-[官方文档](https://pay.weixin.qq.com/wiki/doc/api/tools/mch_pay.php?chapter=14_3)
+## 图像处理
+
+### aiCrop
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/img/img.aiCrop.html)
 
 ```go
 
-import "github.com/medivhzhan/weapp/payment"
+import "github.com/medivhzhan/weapp/v2"
 
-// 新建退款订单
-form := payment.TransferInfo{
-    AppID:       "APPID",
-    MchID:       "商户号",
-    OutTradeNo:  "商户订单号", // or TransactionID: "微信订单号",
+res, err := weapp.AICrop("access-token", "filename")
+// 或者
+res, err := weapp.AICropByURL("access-token", "url")
+if err != nil {
+    // 处理一般错误信息
+    return
 }
 
-// 需要证书
-res, err := form.GetInfo("支付密钥",  "cert 证书路径", "key 证书路径")
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### scanQRCode
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/img/img.scanQRCode.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.ScanQRCode("access-token", "file-path")
+// 或者
+res, err := weapp.ScanQRCodeByURL("access-token", "qr-code-url")
 if err != nil {
-    // handle error
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### superResolution
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/img/img.superresolution.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.SuperResolution("access-token", "file-path")
+// 或者
+res, err := weapp.SuperResolutionByURL("access-token", "img-url")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+---
+
+## 及时配送
+
+### 服务提供方使用
+
+#### updateDeliveryOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.updateOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+mocker := weapp.DeliveryOrderUpdater{
+   // ...
+}
+
+res, err := mocker.Update("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### onAgentPosQuery
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onAgentPosQuery.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnAgentPosQuery(func(mix *weapp.AgentPosQueryResult) *weapp.AgentPosQueryReturn {
+    // 处理返回结果
+
+    return &weapp.AgentPosQueryReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onAuthInfoGet
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onAuthInfoGet.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnAuthInfoGet(func(mix *weapp.AuthInfoGetResult) *weapp.AuthInfoGetReturn {
+    // 处理返回结果
+
+    return &weapp.AuthInfoGetReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onCancelAuth
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onCancelAuth.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnCancelAuth(func(mix *weapp.CancelAuthResult) *weapp.CancelAuthReturn {
+    // 处理返回结果
+
+    return &weapp.CancelAuthReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onDeliveryOrderAdd
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onOrderAdd.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnDeliveryOrderAdd(func(mix *weapp.DeliveryOrderAddResult) *weapp.DeliveryOrderAddReturn {
+    // 处理返回结果
+
+    return &weapp.DeliveryOrderAddReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onDeliveryOrderAddTips
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onOrderAddTips.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnDeliveryOrderAddTips(func(mix *weapp.DeliveryOrderAddTipsResult) *weapp.DeliveryOrderAddTipsReturn {
+    // 处理返回结果
+
+    return &weapp.DeliveryOrderAddTipsReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onDeliveryOrderCancel
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onOrderCancel.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnDeliveryOrderCancel(func(mix *weapp.DeliveryOrderCancelResult) *weapp.DeliveryOrderCancelReturn {
+    // 处理返回结果
+
+    return &weapp.DeliveryOrderCancelReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onDeliveryOrderConfirmReturn
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onOrderConfirmReturn.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnDeliveryOrderReturnConfirm(func(mix *weapp.DeliveryOrderReturnConfirmResult) *weapp.DeliveryOrderReturnConfirmReturn {
+    // 处理返回结果
+
+    return &weapp.DeliveryOrderReturnConfirmReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onDeliveryOrderPreAdd
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onOrderPreAdd.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnDeliveryOrderPreAdd(func(mix *weapp.DeliveryOrderPreAddResult) *weapp.DeliveryOrderPreAddReturn {
+    // 处理返回结果
+
+    return &weapp.DeliveryOrderPreAddReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onDeliveryOrderPreCancel
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onOrderPreCancel.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnDeliveryOrderPreCancel(func(mix *weapp.DeliveryOrderPreCancelResult) *weapp.DeliveryOrderPreCancelReturn {
+    // 处理返回结果
+
+    return &weapp.DeliveryOrderPreCancelReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onDeliveryOrderQuery
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onOrderQuery.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnDeliveryOrderQuery(func(mix *weapp.DeliveryOrderQueryResult) *weapp.DeliveryOrderQueryReturn {
+    // 处理返回结果
+
+    return &weapp.DeliveryOrderQueryReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onDeliveryOrderReAdd
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onOrderReAdd.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnDeliveryOrderReadd(func(mix *weapp.DeliveryOrderReaddResult) *weapp.DeliveryOrderReaddReturn {
+    // 处理返回结果
+
+    return &weapp.DeliveryOrderReaddReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onPreAuthCodeGet
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onPreAuthCodeGet.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnPreAuthCodeGet(func(mix *weapp.PreAuthCodeGetResult) *weapp.PreAuthCodeGetReturn {
+    // 处理返回结果
+
+    return &weapp.PreAuthCodeGetReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onRiderScoreSet
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-provider/immediateDelivery.onRiderScoreSet.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnRiderScoreSet(func(mix *weapp.RiderScoreSetResult) *weapp.RiderScoreSetReturn {
+    // 处理返回结果
+
+    return &weapp.PreAuthCodeGetReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+### 小程序使用
+
+#### abnormalConfirm
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.abnormalConfirm.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+confirmer := weapp.AbnormalConfirmer{
+    ShopID:       "123456",
+    ShopOrderID:  "123456",
+    ShopNo:       "shop_no_111",
+    WaybillID:    "123456",
+    Remark:       "remark",
+    DeliverySign: "123456",
+}
+
+res, err := confirmer.Confirm("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### addDeliveryOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.addOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+creator := weapp.DeliveryOrderCreator{
+   // ...
+}
+
+res, err := creator.Create("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### addDeliveryTip
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.addTip.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+adder := weapp.DeliveryTipAdder{
+   // ...
+}
+
+res, err := adder.Add("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### cancelDeliveryOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.cancelOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+canceler := weapp.DeliveryOrderCanceler{
+   // ...
+}
+
+res, err := canceler.Cancel("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getAllImmediateDelivery
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.getAllImmeDelivery.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetAllImmediateDelivery("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getBindAccount
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.getBindAccount.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetBindAccount("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getDeliveryOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.getOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+getter := weapp.DeliveryOrderGetter{
+   // ...
+}
+
+res, err := getter.Get("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### mockUpdateDeliveryOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.mockUpdateOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+mocker := weapp.UpdateDeliveryOrderMocker{
+   // ...
+}
+
+res, err := mocker.Mock("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### onDeliveryOrderStatus
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.onOrderStatus.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnDeliveryOrderStatusUpdate(func(mix *weapp.DeliveryOrderStatusUpdateResult) *weapp.DeliveryOrderStatusUpdateReturn {
+    // 处理返回结果
+
+    return &weapp.DeliveryOrderStatusUpdateReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### preAddDeliveryOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.preAddOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+creator := weapp.DeliveryOrderCreator{
+   // ...
+}
+
+res, err := creator.Prepare("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### preCancelDeliveryOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.preCancelOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+canceler := weapp.DeliveryOrderCanceler{
+   // ...
+}
+
+res, err := canceler.Prepare("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### reDeliveryOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/immediate-delivery/by-business/immediateDelivery.reOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+creator := weapp.DeliveryOrderCreator{
+   // ...
+}
+
+res, err := creator.Recreate("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+---
+
+## 物流助手
+
+### 小程序使用
+
+#### addExpressOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.addOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+creator := weapp.ExpressOrderCreator{
+   // ...
+}
+
+res, err := creator.Create("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### cancelExpressOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.cancelOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+canceler := weapp.ExpressOrderCanceler{
+   // ...
+}
+
+res, err := canceler.cancel("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getAllDelivery
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.getAllDelivery.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.getAllDelivery("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getExpressOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.getOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+getter := weapp.ExpressOrderGetter{
+   // ...
+}
+
+res, err := getter.Get("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getExpressPath
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.getPath.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+getter := weapp.ExpressPathGetter{
+   // ...
+}
+
+res, err := getter.Get("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getExpressPrinter
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.getPrinter.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetPrinter("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### getExpressQuota
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.getQuota.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+getter := weapp.QuotaGetter{
+   // ...
+}
+
+res, err := getter.Get("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### onExpressPathUpdate
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.onPathUpdate.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnExpressPathUpdate(func(mix *weapp.ExpressPathUpdateResult) {
+    // 处理返回结果
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### testUpdateExpressOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.testUpdateOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+tester := weapp.UpdateExpressOrderTester{
+   // ...
+}
+
+res, err := tester.Test("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### updateExpressPrinter
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-business/logistics.updatePrinter.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+updater := weapp.PrinterUpdater{
+   // ...
+}
+
+res, err := updater.Update("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### 服务提供方使用
+
+#### getExpressContact
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-provider/logistics.getContact.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.GetContact("access-token", "token", "wat-bill-id")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### onAddExpressOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-provider/logistics.onAddOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnAddExpressOrder(func(mix *weapp.AddExpressOrderResult) *weapp.AddExpressOrderReturn {
+    // 处理返回结果
+
+    return &weapp.AddExpressOrderReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onCancelExpressOrder
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-provider/logistics.onCancelOrder.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnCancelExpressOrder(func(mix *weapp.CancelExpressOrderResult) *weapp.CancelExpressOrderReturn {
+    // 处理返回结果
+
+    return &weapp.CancelExpressOrderReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onCheckExpressBusiness
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-provider/logistics.onCheckBusiness.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnCheckExpressBusiness(func(mix *weapp.CheckExpressBusinessResult) *weapp.CheckExpressBusinessReturn {
+    // 处理返回结果
+
+    return &weapp.CheckExpressBusinessReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### onGetExpressQuota
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-provider/logistics.onGetQuota.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+srv, err := weapp.NewServer("app-id", "access-token", "aes-key", "mch-id", "api-key", false)
+if err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+srv.OnGetExpressQuota(func(mix *weapp.GetExpressQuotaResult) *weapp.GetExpressQuotaReturn {
+    // 处理返回结果
+
+    return &weapp.GetExpressQuotaReturn{
+        // ...
+    }
+})
+
+if err := srv.Serve(http.ResponseWriter, *http.Request); err != nil {
+    // 处理微信返回错误信息
+    return
+}
+
+```
+
+#### previewExpressTemplate
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-provider/logistics.previewTemplate.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+previewer := weapp.ExpressTemplatePreviewer{
+   // ...
+}
+
+res, err := previewer.Preview("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### updateExpressBusiness
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-provider/logistics.updateBusiness.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+updater := weapp.BusinessUpdater{
+   // ...
+}
+
+res, err := updater.Update("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+#### updateExpressPath
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/express/by-provider/logistics.updatePath.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+updater := weapp.ExpressPathUpdater{
+   // ...
+}
+
+res, err := updater.Update("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+---
+
+## OCR
+
+### bankcard
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/ocr/ocr.bankcard.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.BankCard("access-token", "file-path", weapp.RecognizeModeScan)
+// 或者
+res, err := weapp.BankCardByURL("access-token", "card-url", weapp.RecognizeModePhoto)
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### businessLicense
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/ocr/ocr.businessLicense.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.BusinessLicense("access-token", "file-path")
+// 或者
+res, err := weapp.BusinessLicenseByURL("access-token", "card-url")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### driverLicense
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/ocr/ocr.driverLicense.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.DriverLicense("access-token", "file-path")
+// 或者
+res, err := weapp.DriverLicenseByURL("access-token", "card-url")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### idcard
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/ocr/ocr.idcard.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.IDCardByURL("access-token", "card-url", weapp.RecognizeModePhoto)
+// 或者
+res, err := weapp.IDCard("access-token", "file-path", weapp.RecognizeModeScan)
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### printedText
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/ocr/ocr.printedText.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.PrintedText("access-token", "file-path")
+// 或者
+res, err := weapp.PrintedTextByURL("access-token", "card-url")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+### vehicleLicense
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/ocr/ocr.vehicleLicense.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.VehicleLicense("access-token", "file-path", weapp.RecognizeModeScan)
+// 或者
+res, err := weapp.VehicleLicenseByURL("access-token", "card-url", weapp.RecognizeModePhoto)
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+---
+
+## 生物认证
+
+### verifySignature
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/soter/soter.verifySignature.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+res, err := weapp.VerifySignature("access-token", "open-id", "data", "signature")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
+    return
+}
+
+fmt.Printf("返回结果: %#v", res)
+
+```
+
+---
+
+## 订阅消息
+
+### sendSubscribeMessage
+
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/subscribe-message/subscribeMessage.send.html)
+
+```go
+
+import "github.com/medivhzhan/weapp/v2"
+
+sender := weapp.SubscribeMessage{
+    ToUser:     mpOpenID,
+    TemplateID: "template-id",
+    Page:       "mock/page/path",
+    Data: weapp.SubscribeMessageData{
+        "first-key": {
+            Value: "value",
+        },
+        "second-key": {
+            Value: "value",
+        },
+    },
+}
+
+_, err := sender.Send("access-token")
+if err != nil {
+    // 处理一般错误信息
+    return
+}
+
+if err := res.GetResponseError(); err !=nil {
+    // 处理微信返回错误信息
     return
 }
 
@@ -588,121 +2680,50 @@ fmt.Printf("返回结果: %#v", res)
 
 ## 解密
 
+[官方文档](https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/signature.html)
+
+> ⚠️ 前端应当先完成[登录](#登录)流程再调用获取加密数据的相关接口。
+
 ### 解密手机号码
 
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/getPhoneNumber.html)
-
 ```go
+import "github.com/medivhzhan/weapp/v2"
 
-import "github.com/medivhzhan/weapp"
+res, err := weapp.DecryptMobile("session-key", "encrypted-date", "iv" )
+if err != nil {
+    // 处理一般错误信息
+    return
+}
 
-// 解密手机号码
-//
-// @ssk 通过 Login 向微信服务端请求得到的 session_key
-// @data 小程序通过 api 得到的加密数据(encryptedData)
-// @iv 小程序通过 api 得到的初始向量(iv)
-phone , err := weapp.DecryptPhoneNumber(ssk, data, iv string)
-
-fmt.Printf("手机数据: %#v", phone)
-
+fmt.Printf("返回结果: %#v", res)
 ```
 
 ### 解密分享内容
 
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/share.html#wxgetshareinfoobject)
-
 ```go
+import "github.com/medivhzhan/weapp/v2"
 
-import "github.com/medivhzhan/weapp"
+res, err := weapp.DecryptShareInfo("session-key", "encrypted-date", "iv" )
+if err != nil {
+    // 处理一般错误信息
+    return
+}
 
-// 解密转发信息的加密数据
-//
-// @ssk 通过 Login 向微信服务端请求得到的 session_key
-// @data 小程序通过 api 得到的加密数据(encryptedData)
-// @iv 小程序通过 api 得到的初始向量(iv)
-//
-// @gid 小程序唯一群号
-openGid , err := weapp.DecryptShareInfo(ssk, data, iv string)
-
+fmt.Printf("返回结果: %#v", res)
 ```
 
 ### 解密用户信息
 
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/open.html)
-
 ```go
+import "github.com/medivhzhan/weapp/v2"
 
-import "github.com/medivhzhan/weapp"
-
-// 解密用户信息
-//
-// @rawData 不包括敏感信息的原始数据字符串, 用于计算签名。
-// @encryptedData 包括敏感数据在内的完整用户信息的加密数据
-// @signature 使用 sha1( rawData + session_key ) 得到字符串, 用于校验用户信息
-// @iv 加密算法的初始向量
-// @ssk 微信 session_key
-ui, err := weapp.DecryptUserInfo(rawData, encryptedData, signature, iv, ssk string)
+res, err := weapp.DecryptUserInfo( "session-key", "raw-data", "encrypted-date", "signature", "iv")
 if err != nil {
+    // 处理一般错误信息
     return
 }
 
-fmt.Printf("用户数据: %#v", ui)
-
+fmt.Printf("返回结果: %#v", res)
 ```
 
 ---
-
-## 内容检测
-
-### 检测图片
-
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/imgSecCheck.html)
-
-```go
-
-import "github.com/medivhzhan/weapp"
-
-// 本地图片检测
-//
-// @filename 要检测的图片本地路径
-// @token 接口调用凭证(access_token)
-res, err := IMGSecCheck(filename, token string)
-if err != nil {
-    return
-}
-
-fmt.Printf("返回结果: %#v", res)
-
-// 网络图片检测
-//
-// @url 要检测的图片网络路径
-// @token 接口调用凭证(access_token)
-res, err := IMGSecCheckFromNet(url, token string)
-if err != nil {
-    return
-}
-
-fmt.Printf("返回结果: %#v", res)
-
-```
-
-### 检测文本
-
-[官方文档](https://developers.weixin.qq.com/miniprogram/dev/api/msgSecCheck.html)
-
-```go
-
-import "github.com/medivhzhan/weapp"
-
-// 文本检测
-//
-// @content 要检测的文本内容，长度不超过 500KB，编码格式为utf-8
-// @token 接口调用凭证(access_token)
-res, err := MSGSecCheck(content, token string)
-if err != nil {
-    return
-}
-
-fmt.Printf("返回结果: %#v", res)
-
-```

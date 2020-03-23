@@ -1,123 +1,105 @@
 package weapp
 
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"mime/multipart"
-	"net/http"
-	"os"
-	"strings"
-
-	"github.com/medivhzhan/weapp/util"
-)
-
 // 检测地址
 const (
-	IMGSecCheckURL = "/wxa/img_sec_check"
-	MSGSecCheckURL = "/wxa/msg_sec_check"
+	apiIMGSecCheck     = "/wxa/img_sec_check"
+	apiMSGSecCheck     = "/wxa/msg_sec_check"
+	apiMediaCheckAsync = "/wxa/media_check_async"
 )
-
-// IMGSecCheckFromNet 网络图片检测
-// 官方文档: https://developers.weixin.qq.com/miniprogram/dev/api/imgSecCheck.html
-//
-// @url 要检测的图片网络路径
-// @token 接口调用凭证(access_token)
-func IMGSecCheckFromNet(url, token string) (res Response, err error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	bts, err := ioutil.ReadAll(resp.Body)
-
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	str := strings.Split(url, "/")
-	fmt.Println(str)
-	fmt.Println(str[len(str)-1])
-	fileWriter, err := writer.CreateFormFile("media", str[len(str)-1])
-	if err != nil {
-		return
-	}
-	_, err = fileWriter.Write(bts)
-	if err != nil {
-		return
-	}
-	contentType := writer.FormDataContentType()
-	writer.Close()
-
-	return imgSecCheck(body, contentType, token)
-}
 
 // IMGSecCheck 本地图片检测
 // 官方文档: https://developers.weixin.qq.com/miniprogram/dev/api/imgSecCheck.html
 //
-// @filename 要检测的图片本地路径
-// @token 接口调用凭证(access_token)
-func IMGSecCheck(filename, token string) (res Response, err error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return
-	}
-	defer file.Close()
-
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	fileWriter, err := writer.CreateFormFile("media", filename)
-	if err != nil {
-		return
-	}
-	_, err = io.Copy(fileWriter, file)
-	if err != nil {
-		return
-	}
-	contentType := writer.FormDataContentType()
-	writer.Close()
-
-	return imgSecCheck(body, contentType, token)
+// filename 要检测的图片本地路径
+// token 接口调用凭证(access_token)
+func IMGSecCheck(token, filename string) (*CommonError, error) {
+	api := baseURL + apiIMGSecCheck
+	return imgSecCheck(api, filename, token)
 }
 
-func imgSecCheck(body io.Reader, contentType, token string) (res Response, err error) {
+func imgSecCheck(api, token, filename string) (*CommonError, error) {
 
-	api, err := util.TokenAPI(BaseURL+IMGSecCheckURL, token)
+	url, err := tokenAPI(api, token)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	resp, err := http.Post(api, contentType, body)
-	if err != nil {
-		return
+	res := new(CommonError)
+	if err := postFormByFile(url, "media", filename, res); err != nil {
+		return nil, err
 	}
-	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&res)
-
-	return
+	return res, nil
 }
 
 // MSGSecCheck 文本检测
 // 官方文档: https://developers.weixin.qq.com/miniprogram/dev/api/msgSecCheck.html
 //
-// @content 要检测的文本内容，长度不超过 500KB，编码格式为utf-8
-// @token 接口调用凭证(access_token)
-func MSGSecCheck(content, token string) (res Response, err error) {
-	api, err := util.TokenAPI(BaseURL+MSGSecCheckURL, token)
+// content 要检测的文本内容，长度不超过 500KB，编码格式为utf-8
+// token 接口调用凭证(access_token)
+func MSGSecCheck(token, content string) (*CommonError, error) {
+	api := baseURL + apiMSGSecCheck
+	return msgSecCheck(api, token, content)
+}
+
+func msgSecCheck(api, token, content string) (*CommonError, error) {
+	url, err := tokenAPI(api, token)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	body := fmt.Sprintf(`{"content": "%s"}`, content)
-
-	resp, err := http.Post(api, "application/json", strings.NewReader(body))
-	if err != nil {
-		return
+	params := requestParams{
+		"content": content,
 	}
-	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&res)
+	res := new(CommonError)
+	if err = postJSON(url, params, res); err != nil {
+		return nil, err
+	}
 
-	return
+	return res, nil
+}
+
+// MediaType 检测内容类型
+type MediaType = uint8
+
+// 所有检测内容类型
+const (
+	_              MediaType = iota
+	MediaTypeAudio           // 音频
+	MediaTypeImage           // 图片
+)
+
+// CheckMediaResponse 异步校验图片/音频返回数据
+type CheckMediaResponse struct {
+	CommonError
+	TraceID string `json:"trace_id"`
+}
+
+// MediaCheckAsync 异步校验图片/音频是否含有违法违规内容。
+//
+// mediaURL 要检测的多媒体url
+// mediaType 接口调用凭证(access_token)
+func MediaCheckAsync(token, mediaURL string, mediaType MediaType) (*CheckMediaResponse, error) {
+	api := baseURL + apiMediaCheckAsync
+	return mediaCheckAsync(api, token, mediaURL, mediaType)
+}
+
+func mediaCheckAsync(api, token, mediaURL string, mediaType MediaType) (*CheckMediaResponse, error) {
+	url, err := tokenAPI(api, token)
+	if err != nil {
+		return nil, err
+	}
+
+	params := requestParams{
+		"media_url":  mediaURL,
+		"media_type": mediaType,
+	}
+
+	res := new(CheckMediaResponse)
+	if err = postJSON(url, params, res); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
